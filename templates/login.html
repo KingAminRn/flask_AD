@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="no">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Logg inn</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+
+<body class="flex items-center justify-center h-screen bg-gray-100">
+    <div class="bg-white p-6 rounded shadow w-full max-w-sm">
+        <h2 class="text-xl font-bold mb-4">Admin Logg inn</h2>
+        <form method="POST">
+            <label class="block mb-2">Brukernavn</label>
+            <input type="text" name="brukernavn" required class="w-full border mb-4 p-2">
+
+            <label class="block mb-2">Passord</label>
+            <input type="password" name="passord" required class="w-full border mb-4 p-2">
+
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded w-full">Logg inn</button>
+        </form>
+
+        {% if vis_registrer %}
+        <p class="mt-4 text-sm">Ingen admin? <a href="/registrer" class="text-blue-600 underline">Registrer admin
+                her</a></p>
+        {% endif %}
+    </div>
+</body>
+
+</html>

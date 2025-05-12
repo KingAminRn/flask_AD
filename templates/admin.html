@@ -1,8 +1,25 @@
-<!-- Viser alle innsendte meldinger til administrator -->
-<h2>Innsendte meldinger</h2>
-<ul>
-{% for m in meldinger %}
-  <li><strong>{{ m[1] }}</strong>: {{ m[3] }}</li> <!-- Navn og beskjed -->
-{% endfor %}
-</ul>
- 
+<!DOCTYPE html>
+<html lang="no">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Innsendte Meldinger</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-gray-100 p-6">
+  <div class="max-w-2xl mx-auto bg-white p-6 rounded shadow">
+    <h1 class="text-2xl font-bold mb-4">Innsendte supporthenvendelser</h1>
+    <ul>
+      {% for m in meldinger %}
+      <li class="mb-4 border-b pb-2">
+        <strong>{{ m[1] }}</strong> ({{ m[2] }}):<br>
+        {{ m[3] }}
+      </li>
+      {% endfor %}
+    </ul>
+    <a href="/logout" class="text-red-600 underline">Logg ut</a>
+  </div>
+</body>
+
+</html>

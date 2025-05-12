@@ -1,0 +1,8 @@
+<!-- Viser alle innsendte meldinger til administrator -->
+<h2>Innsendte meldinger</h2>
+<ul>
+{% for m in meldinger %}
+  <li><strong>{{ m[1] }}</strong>: {{ m[3] }}</li> <!-- Navn og beskjed -->
+{% endfor %}
+</ul>
+ 

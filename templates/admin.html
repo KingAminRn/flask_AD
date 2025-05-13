@@ -4,20 +4,27 @@
 <head>
   <meta charset="UTF-8">
   <title>Innsendte Meldinger</title>
+  <!-- Henter inn Tailwind CSS for stil -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 
 <body class="bg-gray-100 p-6">
+  <!-- Sentral container for innholdet -->
   <div class="max-w-2xl mx-auto bg-white p-6 rounded shadow">
     <h1 class="text-2xl font-bold mb-4">Innsendte supporthenvendelser</h1>
+
+    <!-- Liste over meldinger sendt inn av brukere -->
     <ul>
       {% for m in meldinger %}
       <li class="mb-4 border-b pb-2">
+        <!-- Viser navn (m[1]), e-post (m[2]) og selve beskjeden (m[3]) -->
         <strong>{{ m[1] }}</strong> ({{ m[2] }}):<br>
         {{ m[3] }}
       </li>
       {% endfor %}
     </ul>
+
+    <!-- Logg ut-knapp -->
     <a href="/logout" class="text-red-600 underline">Logg ut</a>
   </div>
 </body>

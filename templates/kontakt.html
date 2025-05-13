@@ -4,16 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <title>Kontakt oss</title>
-    <!-- Tailwind for styling -->
+    <!-- Importerer Tailwind CSS for stil -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 
 <body class="bg-gray-100 p-6">
-    <!-- Skjema-boks -->
+    <!-- Hovedbeholder med maks bredde og sentrert innhold -->
     <div class="max-w-md mx-auto bg-white p-6 rounded shadow">
+        <!-- Overskrift -->
         <h1 class="text-2xl font-bold mb-4">Kontakt oss</h1>
 
-        <!-- Skjema for å sende inn melding -->
+        <!-- Kontaktskjema -->
         <form method="POST">
             <!-- Navn-felt -->
             <label class="block mb-2">Navn</label>
@@ -30,6 +31,15 @@
             <!-- Send-knapp -->
             <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Send inn</button>
         </form>
+
+        <!-- Lenker til innlogging og admin-registrering -->
+        <div class="mt-6 text-sm text-center">
+            <!-- Lenke til login-siden -->
+            <p>Er du admin? <a href="/login" class="text-blue-600 underline">Logg inn her</a></p>
+
+            <!-- Lenke til registrering (tilgjengelig i tilfelle det ikke finnes admin fra før) -->
+            <p class="mt-2">Første gang som admin? <a href="/registrer" class="text-green-600 underline">Registrer deg her</a></p>
+        </div>
     </div>
 </body>
 

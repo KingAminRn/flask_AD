@@ -1,20 +1,20 @@
-# Importerer nødvendige moduler fra Flask og andre biblioteker
+# Importerer nødvendige moduler
 from flask import Flask, render_template, request, redirect, session, url_for, flash
-import sqlite3  # Brukes for å håndtere SQLite-databasen
-import os       # For å generere en tilfeldig secret key
+import sqlite3         # Brukes for SQLite-databasen
+import os              # Brukes for å lage en sikker sesjonsnøkkel
 
-# Oppretter Flask-applikasjonen
+# Lager Flask-appen
 app = Flask(__name__)
 
-# Setter en hemmelig nøkkel som brukes til å sikre sesjonsdata
+# Lager en tilfeldig hemmelig nøkkel for å beskytte brukersesjonene
 app.secret_key = os.urandom(24)
 
-# Initialiserer databasen – kjøres én gang når appen starter
+# Funksjon som kjører én gang når appen starter – lager databasen og tabellene hvis de ikke finnes
 def init_db():
-    conn = sqlite3.connect("meldinger.db")
+    conn = sqlite3.connect("meldinger.db")  # Kobler til databasen (eller lager den)
     c = conn.cursor()
 
-    # Oppretter tabellen for kontaktskjema-meldinger hvis den ikke finnes
+    # Lager tabell for kontaktskjema-meldinger
     c.execute('''
         CREATE TABLE IF NOT EXISTS kontakt (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -24,7 +24,7 @@ def init_db():
         )
     ''')
 
-    # Oppretter tabellen for brukere (admin) med unikt brukernavn
+    # Lager tabell for brukere (adminer)
     c.execute('''
         CREATE TABLE IF NOT EXISTS brukere (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -34,18 +34,19 @@ def init_db():
         )
     ''')
 
-    # Lagrer endringer og lukker tilkoblingen
-    conn.commit()
-    conn.close()
+    conn.commit()   # Lagrer endringer
+    conn.close()    # Lukker tilkoblingen
 
-# Hovedruten – videresender automatisk til /kontakt
+# Startside – sender brukeren videre til kontaktskjema
 @app.route("/")
 def index():
     return redirect("/kontakt")
 
-# Rute for kontaktskjemaet
+# Kontakt-side hvor alle kan sende inn meldinger
 @app.route("/kontakt", methods=["GET", "POST"])
 def kontakt():
+    session.clear()  # Sørger for at alle blir logget ut hver gang denne siden åpnes
+
     if request.method == "POST":
         # Henter data fra skjemaet
         navn = request.form["navn"]
@@ -59,25 +60,25 @@ def kontakt():
         conn.commit()
         conn.close()
 
-        # Sender bruker til takk-siden
+        # Sender brukeren til takk-siden
         return redirect("/takk")
 
-    # Viser kontaktsiden (GET-forespørsel)
+    # Viser skjemaet
     return render_template("kontakt.html")
 
-# Takkeside etter at en melding er sendt
+# Takkeside etter at man har sendt inn skjema
 @app.route("/takk")
 def takk():
     return render_template("takk.html")
 
-# Admin-panelet hvor man ser innsendte meldinger
+# Adminpanel – her ser man meldinger, kun tilgjengelig for innloggede adminer
 @app.route("/admin")
 def admin():
-    # Sjekker at brukeren er innlogget og har rollen "admin"
+    # Sjekker om brukeren er logget inn og har rollen "admin"
     if not session.get("innlogget") or session.get("rolle") != "admin":
         return redirect("/login")
 
-    # Henter alle meldinger fra databasen for visning
+    # Henter meldinger fra databasen
     conn = sqlite3.connect("meldinger.db")
     c = conn.cursor()
     c.execute("SELECT * FROM kontakt")
@@ -86,7 +87,7 @@ def admin():
 
     return render_template("admin.html", meldinger=meldinger)
 
-# Login-side for admin
+# Innloggingsside for admin
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -94,7 +95,7 @@ def login():
         brukernavn = request.form["brukernavn"]
         passord = request.form["passord"]
 
-        # Sjekker om brukeren finnes i databasen
+        # Sjekker mot databasen
         conn = sqlite3.connect("meldinger.db")
         c = conn.cursor()
         c.execute("SELECT * FROM brukere WHERE brukernavn = ? AND passord = ?", (brukernavn, passord))
@@ -102,70 +103,65 @@ def login():
         conn.close()
 
         if bruker:
-            # Hvis bruker finnes – logg inn og lagre info i sesjon
+            # Innlogging vellykket – lagrer info i sesjon
             session["innlogget"] = True
             session["brukernavn"] = brukernavn
-            session["rolle"] = bruker[3]  # rolle = 'admin'
+            session["rolle"] = bruker[3]  # Rollen er typisk "admin"
             return redirect("/admin")
         else:
-            # Feil innlogging – vis feilmelding og prøv igjen
+            # Feil brukernavn/passord – viser feilmelding
             flash("Feil brukernavn eller passord!")
             return redirect("/login")
 
-    # Sjekker om det finnes noen admin-brukere – brukes for å vise registreringslenke
+    # Viser login-siden (GET)
+    # Sjekker om det finnes admin fra før, brukes for å vise registreringslenken i login.html
     conn = sqlite3.connect("meldinger.db")
     c = conn.cursor()
     c.execute("SELECT COUNT(*) FROM brukere WHERE rolle = 'admin'")
     admin_count = c.fetchone()[0]
     conn.close()
 
+    # Viser login.html, og gir beskjed om vi skal vise "registrer deg"-lenken
     return render_template("login.html", vis_registrer=(admin_count == 0))
 
-# Side for å registrere første admin-bruker
+# Side hvor hvem som helst kan registrere en ny admin
 @app.route("/registrer", methods=["GET", "POST"])
 def registrer():
-    conn = sqlite3.connect("meldinger.db")
-    c = conn.cursor()
-    
-    # Teller hvor mange admin-brukere som finnes
-    c.execute("SELECT COUNT(*) FROM brukere WHERE rolle = 'admin'")
-    admin_count = c.fetchone()[0]
-
-    # Hvis det allerede finnes en admin, send til innlogging
-    if admin_count > 0:
-        return redirect("/login")
-
     if request.method == "POST":
         brukernavn = request.form["brukernavn"]
         passord = request.form["passord"]
 
+        conn = sqlite3.connect("meldinger.db")
+        c = conn.cursor()
+
         try:
-            # Prøver å legge inn ny admin-bruker
+            # Prøver å opprette admin
             c.execute("INSERT INTO brukere (brukernavn, passord, rolle) VALUES (?, ?, 'admin')", (brukernavn, passord))
             conn.commit()
 
-            # Logger inn brukeren automatisk
+            # Logger inn den nye adminen automatisk
             session["innlogget"] = True
             session["brukernavn"] = brukernavn
             session["rolle"] = "admin"
 
             return redirect("/admin")
         except sqlite3.IntegrityError:
-            # Håndterer duplikate brukernavn
-            flash("Brukernavn allerede i bruk!")
+            # Brukernavnet finnes allerede
+            flash("Brukernavnet er allerede i bruk!")
             return redirect("/registrer")
         finally:
             conn.close()
 
+    # Viser registreringsskjemaet (GET)
     return render_template("registrer.html")
 
-# Logg ut-funksjon – fjerner brukerens sesjon
+# Logg ut – sletter sesjonen og sender brukeren til login
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect("/login")
 
-# Kjører appen hvis dette er hovedfilen
+# Starter Flask-serveren
 if __name__ == "__main__":
-    init_db()  # Oppretter nødvendige tabeller
-    app.run(debug=True)  # Starter Flask-serveren i debug-modus
+    init_db()        # Lager databasen hvis den ikke finnes
+    app.run(debug=True)  # Kjører appen i utviklermodus
